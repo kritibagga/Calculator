@@ -6,8 +6,8 @@ import ButtonBox from "./Components/ButtonBox";
 import Button from "./Components/Button";
 
 const btnValues = [
-	["C", "+-", "%", "/"],
-	[7, 8, 9, "X"],
+	["C", "+-", "/", "Del"],
+	[7, 8, 9, "x"],
 	[4, 5, 6, "-"],
 	[1, 2, 3, "+"],
 	[0, ".", "="],
@@ -24,6 +24,8 @@ const App = () => {
 		res: 0,
 	});
 
+	const math = (a, b, sign) =>
+		sign === "+" ? a + b : sign === "-" ? a - b : sign === "X" ? a * b : a / b;
 	//numClickHandler Function
 	const numClickHandler = (e) => {
 		e.preventDefault();
@@ -69,15 +71,6 @@ const App = () => {
 	//equalClickHandler Function
 	const equalsClickHandler = () => {
 		if (calc.sign && calc.num) {
-			const math = (a, b, sign) =>
-				sign === "+"
-					? a + b
-					: sign === "-"
-					? a - b
-					: sign === "X"
-					? a * b
-					: a / b;
-
 			setCalc({
 				...calc,
 				res:
@@ -106,16 +99,14 @@ const App = () => {
 		});
 	};
 
-	//percentageClickHandler Function
-	const percentClickHandler = () => {
-		let num = calc.num ? parseFloat(removeSpaces(calc.num)) : 0;
-		let res = calc.res ? parseFloat(removeSpaces(calc.res)) : 0;
-
+	//deleteClickHandler Function
+	const deleteClickHandler = (e) => {
+		e.preventDefault();
+		const givenString = toLocaleString(calc.num);
 		setCalc({
 			...calc,
-			num: (num /= Math.pow(100, 1)),
-			res: (res /= Math.pow(100, 1)),
-			sign: "",
+
+			num: givenString.substring(0, givenString.length - 1),
 		});
 	};
 
@@ -129,28 +120,47 @@ const App = () => {
 		});
 	};
 
+	const finalValue = () => {
+		return calc.num && calc.res
+			? "(" +
+					toLocaleString(
+						math(
+							Number(removeSpaces(calc.res)),
+							Number(removeSpaces(calc.num)),
+							calc.sign
+						)
+					) +
+					")"
+			: "";
+	};
+
 	return (
 		<>
 			<h1 className='heading'>Calculator</h1>
 			<Wrapper>
-				<Screen value={calc.num ? calc.num : calc.res} />
+				<Screen
+					value={`${calc.num ? calc.num : calc.res}`}
+					result={`${finalValue()}`}
+				/>
 				<ButtonBox>
 					{btnValues.flat().map((btn, i) => {
 						return (
 							<Button
 								key={i}
-								className={btn === "=" ? "equals" : ""}
+								className={
+									btn === "=" ? "equals" : btn === "Del" ? "delete" : ""
+								}
 								value={btn}
 								onClick={
 									btn === "C"
 										? resetClickHandler
 										: btn === "+-"
 										? invertClickHandler
-										: btn === "%"
-										? percentClickHandler
+										: btn === "Del"
+										? deleteClickHandler
 										: btn === "="
 										? equalsClickHandler
-										: btn === "/" || btn === "X" || btn === "-" || btn === "+"
+										: btn === "/" || btn === "x" || btn === "-" || btn === "+"
 										? signClickHandler
 										: btn === "."
 										? commaClickHandler
