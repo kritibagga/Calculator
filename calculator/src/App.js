@@ -17,6 +17,9 @@ const toLocaleString = (num) =>
 	String(num).replace(/(?<!\..*)(\d)(?=(?:\d{3})+(?:\.|$))/g, "$1 ");
 
 const removeSpaces = (num) => num.toString().replace(/\s/g, "");
+
+const zeroDivisionError = "Can't divide with 0";
+
 const App = () => {
 	let [calc, setCalc] = useState({
 		sign: "",
@@ -25,7 +28,8 @@ const App = () => {
 	});
 
 	const math = (a, b, sign) =>
-		sign === "+" ? a + b : sign === "-" ? a - b : sign === "X" ? a * b : a / b;
+		sign === "+" ? a + b : sign === "-" ? a - b : sign === "x" ? a * b : a / b;
+
 	//numClickHandler Function
 	const numClickHandler = (e) => {
 		e.preventDefault();
@@ -35,14 +39,13 @@ const App = () => {
 			setCalc({
 				...calc,
 				num:
-					calc.num === 0 && value === "0"
-						? "0"
-						: removeSpaces(calc.num) % 1 === 0
+					removeSpaces(calc.num) % 1 === 0 && !calc.num.toString().includes(".")
 						? toLocaleString(Number(removeSpaces(calc.num + value)))
 						: toLocaleString(calc.num + value),
 				res: !calc.sign ? 0 : calc.res,
 			});
 		}
+    
 	};
 
 	//commaClickHandler Function
@@ -58,12 +61,21 @@ const App = () => {
 	//signClickHandler Function
 	const signClickHandler = (e) => {
 		e.preventDefault();
-		const value = e.target.innerHTML;
 
 		setCalc({
 			...calc,
-			sign: value,
-			res: !calc.res && calc.num ? calc.num : calc.res,
+			sign: e.target.innerHTML,
+			res: !calc.num
+				? calc.res
+				: !calc.res
+				? calc.num
+				: toLocaleString(
+						math(
+							Number(removeSpaces(calc.res)),
+							Number(removeSpaces(calc.num)),
+							calc.sign
+						)
+				  ),
 			num: 0,
 		});
 	};
@@ -74,8 +86,8 @@ const App = () => {
 			setCalc({
 				...calc,
 				res:
-					calc.num === 0 && calc.sign === "/"
-						? "Can't divide with zero"
+					calc.num === "0" && calc.sign === "/"
+						? zeroDivisionError
 						: toLocaleString(
 								math(
 									Number(removeSpaces(calc.res)),
@@ -120,6 +132,7 @@ const App = () => {
 		});
 	};
 
+	//finalValue which evaluates before equals to
 	const finalValue = () => {
 		return calc.num && calc.res
 			? "(" +
@@ -132,6 +145,23 @@ const App = () => {
 					) +
 					")"
 			: "";
+	};
+
+	//Onclick Function
+	const buttonClickHandler = (e, btn) => {
+		btn === "C" || calc.res === zeroDivisionError
+			? resetClickHandler()
+			: btn === "+-"
+			? invertClickHandler()
+			: btn === "Del"
+			? deleteClickHandler(e)
+			: btn === "="
+			? equalsClickHandler()
+			: btn === "/" || btn === "x" || btn === "-" || btn === "+"
+			? signClickHandler(e)
+			: btn === "."
+			? commaClickHandler(e)
+			: numClickHandler(e);
 	};
 
 	return (
@@ -151,21 +181,7 @@ const App = () => {
 									btn === "=" ? "equals" : btn === "Del" ? "delete" : ""
 								}
 								value={btn}
-								onClick={
-									btn === "C"
-										? resetClickHandler
-										: btn === "+-"
-										? invertClickHandler
-										: btn === "Del"
-										? deleteClickHandler
-										: btn === "="
-										? equalsClickHandler
-										: btn === "/" || btn === "x" || btn === "-" || btn === "+"
-										? signClickHandler
-										: btn === "."
-										? commaClickHandler
-										: numClickHandler
-								}
+								onClick={(e) => buttonClickHandler(e, btn)}
 							/>
 						);
 					})}

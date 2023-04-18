@@ -34,3 +34,12 @@ button:focus {
 .delete:focus {
 	background-color: rgb(213 30 30);
 }
+
+@media screen and (max-width: 480px) {
+	button {
+		font-size: 2rem;
+	}
+	.delete {
+		font-size: 1rem;
+	}
+}
